@@ -22,3 +22,7 @@ The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+## Limitations
+
+Because the latest version of `react-svg-worldmap`  does not work with create-react-app or vite. Version 1.1.0 has been used it does not have any zoom or rich interaction functionality

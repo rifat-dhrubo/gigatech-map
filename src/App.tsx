@@ -17,7 +17,6 @@ function App() {
   const [selectedCountry, setSelectedCountry] = React.useState<Country | null>(
     null
   );
-  console.log("🚀 ~ file: App.tsx:20 ~ App ~ selectedCountry", selectedCountry);
 
   const data = React.useMemo(() => {
     return apiData?.Countries?.map((country) => {
