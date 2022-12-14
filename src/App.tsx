@@ -1,34 +1,97 @@
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
+import Select, { ActionMeta, SingleValue } from "react-select";
 import { WorldMap } from "react-svg-worldmap";
 
-import logo from "./logo.svg";
 import "./App.css";
 
-const data = [
-  { country: "cn", value: 1389618778 }, // china
-  { country: "in", value: 1311559204 }, // india
-  { country: "us", value: 331883986 }, // united states
-  { country: "id", value: 264935824 }, // indonesia
-  { country: "pk", value: 210797836 }, // pakistan
-  { country: "br", value: 210301591 }, // brazil
-  { country: "ng", value: 208679114 }, // nigeria
-  { country: "bd", value: 161062905 }, // bangladesh
-  { country: "ru", value: 141944641 }, // russia
-  { country: "mx", value: 127318112 }, // mexico
-];
+import { Country, getSummaryData } from "./services/index";
+
+type DataShape = {
+  country: string;
+  value: number;
+};
 
 function App() {
+  const { data: apiData, isLoading } = useQuery({ ...getSummaryData() });
+  const [selectedCountry, setSelectedCountry] = React.useState<Country | null>(
+    null
+  );
+  console.log("🚀 ~ file: App.tsx:20 ~ App ~ selectedCountry", selectedCountry);
+
+  const data = React.useMemo(() => {
+    return apiData?.Countries?.map((country) => {
+      const temp: DataShape = {
+        country: country?.CountryCode,
+        value: country.TotalDeaths,
+      };
+      return temp;
+    });
+  }, [apiData]);
+
+  const handleSelect = (
+    newValue: SingleValue<Country>,
+    actionMeta: ActionMeta<Country>
+  ) => {
+    if (actionMeta.action === "select-option") {
+      setSelectedCountry(newValue);
+    }
+    if (
+      actionMeta.action === "clear" ||
+      actionMeta.action === "deselect-option"
+    ) {
+      setSelectedCountry(null);
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <WorldMap
-          color="red"
-          title="Top 10 Populous Countries"
-          value-suffix="people"
-          size="lg"
-          data={data}
-        />
-      </header>
+    <div className="min-h-screen bg-white">
+      <main className="container mx-auto mt-12">
+        <header className="mb-12">
+          <Select
+            className="basic-single"
+            classNamePrefix="select"
+            isLoading={isLoading}
+            isClearable={true}
+            isSearchable={true}
+            options={apiData?.Countries}
+            getOptionLabel={(option) => `${option.Country}`}
+            onChange={handleSelect}
+          />
+        </header>
+        {data != null && !isLoading ? (
+          <div>
+            <div className="m-auto map-wrapper">
+              <WorldMap
+                color="red"
+                title="Covid deaths by country"
+                value-suffix="people"
+                size="responsive"
+                data={data}
+              />
+            </div>
+            {selectedCountry != null ? (
+              <dl className="text-lg text-gray-600">
+                <dt className="flex justify-center gap-2 ">
+                  <p>Country:</p>
+                  <p>{selectedCountry.Country}</p>
+                </dt>
+                <dd className="flex justify-center gap-2 font-semibold text-red-600">
+                  <p>Deaths:</p>
+                  <p>{selectedCountry.TotalDeaths}</p>
+                </dd>
+              </dl>
+            ) : null}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-5 text-center">
+            <p className="text-2xl text-black">{apiData?.Message}</p>
+            <p className="text-base text-gray-600">
+              Data not avialable now. Please try again later
+            </p>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
